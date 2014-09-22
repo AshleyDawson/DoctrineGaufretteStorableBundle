@@ -1,0 +1,37 @@
+{
+    "name": "ashleydawson/doctrine-gaufrette-storable-bundle",
+    "type": "symfony-bundle",
+    "description": "Symfony2 bundle to add a storable behaviour to doctrine entities to facilitate abstracted file storage",
+    "keywords": [
+        "gaufrette",
+        "storage",
+        "file",
+        "doctrine",
+        "orm",
+        "odm"
+    ],
+    "authors": [
+        {
+            "name": "Ashley Dawson",
+            "email": "ashley@ashleydawson.co.uk"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "symfony/symfony": "~2.3",
+        "doctrine/orm": "~2.3",
+        "knplabs/gaufrette": "0.2.*@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.2.6"
+    },
+    "autoload": {
+        "psr-0": {
+            "AshleyDawson\\DoctrineGaufretteStorableBundle": ""
+        }
+    },
+    "target-dir": "AshleyDawson/DoctrineGaufretteStorableBundle",
+    "config": {
+        "bin-dir": "bin"
+    }
+}
