@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="tests/bootstrap.php" colors="true">
+    <testsuites>
+        <testsuite name="Simple Pagination Test Suite">
+            <directory>tests/AshleyDawson/DoctrineGaufretteStorableBundle/</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src/AshleyDawson/DoctrineGaufretteStorableBundle/</directory>
+        </whitelist>
+    </filter>
+</phpunit>
