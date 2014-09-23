@@ -105,7 +105,7 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
             ->delete($entity->getFileName())
         ;
 
-        $this->eventDispatcher->dispatch(StorageEvents::PRE_DELETE, new DeleteUploadedFileEvent(
+        $this->eventDispatcher->dispatch(StorageEvents::POST_DELETE, new DeleteUploadedFileEvent(
             $entity
         ));
     }
