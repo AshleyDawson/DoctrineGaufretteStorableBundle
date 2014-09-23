@@ -4,7 +4,9 @@ namespace AshleyDawson\DoctrineGaufretteStorableBundle\EventListener;
 
 use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandlerInterface;
 use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
+use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Events;
 
 /**
@@ -37,6 +39,8 @@ class UploadedFileSubscriber implements EventSubscriber
     {
         return [
             Events::loadClassMetadata,
+            Events::prePersist,
+            Events::preFlush,
         ];
     }
 
@@ -55,7 +59,48 @@ class UploadedFileSubscriber implements EventSubscriber
         $this->mapFields($args);
     }
 
-    // todo: write persist, update and remove handlers, firing the $this->storageHandler methods
+    public function prePersist(LifecycleEventArgs $args)
+    {
+        if ( ! $this->isEntitySupported($args->getEntity())) {
+            return;
+        }
+
+        $this->storageHandler->writeUploadedFile($args->getEntity());
+    }
+
+    /**
+     * Listen to preFlush events
+     *
+     * @param PreFlushEventArgs $args
+     * @return void
+     */
+    public function preFlush(PreFlushEventArgs $args)
+    {
+        if ( ! $this->isEntitySupported($args->getEmptyInstance())) {
+            return;
+        }
+
+        $unitOfWork = $args->getEntityManager()->getUnitOfWork();
+
+        foreach ($unitOfWork->getIdentityMap() as $identity) {
+
+            foreach ($identity as $entity) {
+
+                if ( ! $this->isEntitySupported($entity)) {
+                    continue;
+                }
+
+                if ($unitOfWork->isScheduledForUpdate($entity)) {
+
+                    $this->storageHandler->deleteUploadedFile($entity);
+                    $this->storageHandler->writeUploadedFile($entity);
+
+                    $unitOfWork->propertyChanged($entity, 'fileName', $entity->getFileName(), $entity->getFileName());
+                    $unitOfWork->scheduleForUpdate($entity);
+                }
+            }
+        }
+    }
 
     /**
      * Returns TRUE if the passed entity is supported by this listener
