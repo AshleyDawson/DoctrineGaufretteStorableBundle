@@ -64,6 +64,7 @@ class UploadedFileSubscriber implements EventSubscriber
      */
     private function mapFields(LoadClassMetadataEventArgs $args)
     {
+        /** @var \Doctrine\ORM\Mapping\ClassMetadataInfo $meta */
         $meta = $args->getClassMetadata();
 
         $meta
