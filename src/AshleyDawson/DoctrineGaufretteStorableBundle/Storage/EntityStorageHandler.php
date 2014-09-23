@@ -54,9 +54,9 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
                 sprintf('The uploaded file "%s" is not readable', $uploadedFile->getPath()));
         }
 
+        $fileContent = file_get_contents($uploadedFile->getPathname());
         $fileName = $uploadedFile->getClientOriginalName();
-        $fileContent = file_get_contents($uploadedFile->getPath());
-        $fileSize = filesize($uploadedFile->getPath());
+        $fileSize = $uploadedFile->getSize();
         $fileMimeType = $uploadedFile->getMimeType();
 
         $this->eventDispatcher->dispatch(StorageEvents::PRE_WRITE, new WriteUploadedFileEvent(

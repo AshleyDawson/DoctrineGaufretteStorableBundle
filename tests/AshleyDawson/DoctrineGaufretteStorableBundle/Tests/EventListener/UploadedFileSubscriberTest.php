@@ -3,10 +3,14 @@
 namespace AshleyDawson\DoctrineGaufretteStorableBundle\Tests\EventListener;
 
 use AshleyDawson\DoctrineGaufretteStorableBundle\EventListener\UploadedFileSubscriber;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandler;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\EntityManagerProvider;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity;
 use Doctrine\Common\EventManager;
+use Knp\Bundle\GaufretteBundle\FilesystemMap;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Gaufrette\Filesystem;
+use Gaufrette\Adapter\Local as LocalAdapter;
 
 class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
 {
@@ -23,9 +27,19 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
     {
         $em = new EventManager();
 
+        $adapter = new LocalAdapter(TESTS_TEMP_DIR);
+        $filesystem = new Filesystem($adapter);
+
+        $filesystemMap = new FilesystemMap([
+            'test_filesystem_map_id' => $filesystem,
+        ]);
+
         $em->addEventSubscriber(
             new UploadedFileSubscriber(
-                // todo: inject dependencies
+                new EntityStorageHandler(
+                    $filesystemMap,
+                    $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
+                )
             )
         );
 

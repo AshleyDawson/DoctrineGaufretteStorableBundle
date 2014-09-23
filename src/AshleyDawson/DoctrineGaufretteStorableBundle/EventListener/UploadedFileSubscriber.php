@@ -4,6 +4,7 @@ namespace AshleyDawson\DoctrineGaufretteStorableBundle\EventListener;
 
 use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandlerInterface;
 use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
 
@@ -37,6 +38,7 @@ class UploadedFileSubscriber implements EventSubscriber
     {
         return [
             Events::loadClassMetadata,
+            Events::prePersist,
         ];
     }
 
@@ -48,7 +50,7 @@ class UploadedFileSubscriber implements EventSubscriber
      */
     public function loadClassMetadata(LoadClassMetadataEventArgs $args)
     {
-        if ( ! $this->isEntitySupported($args)) {
+        if ( ! $this->isEntitySupported($args->getEmptyInstance())) {
             return;
         }
 
@@ -60,13 +62,13 @@ class UploadedFileSubscriber implements EventSubscriber
     /**
      * Returns TRUE if the passed entity is supported by this listener
      *
-     * @param LoadClassMetadataEventArgs $args
+     * @param object $entity
      * @return bool
      */
-    private function isEntitySupported(LoadClassMetadataEventArgs $args)
+    private function isEntitySupported($entity)
     {
         $clazz = get_class($this->storageHandler);
-        return $clazz::isEntitySupported($args->getEmptyInstance());
+        return $clazz::isEntitySupported($entity);
     }
 
     /**
