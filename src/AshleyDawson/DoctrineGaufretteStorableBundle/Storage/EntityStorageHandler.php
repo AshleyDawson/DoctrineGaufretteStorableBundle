@@ -2,9 +2,13 @@
 
 namespace AshleyDawson\DoctrineGaufretteStorableBundle\Storage;
 
+use AshleyDawson\DoctrineGaufretteStorableBundle\Event\DeleteUploadedFileEvent;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Event\StorageEvents;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Event\WriteUploadedFileEvent;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Exception\EntityNotSupportedException;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Exception\UploadedFileNotReadableException;
 use Knp\Bundle\GaufretteBundle\FilesystemMap;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class EntityStorageHandler
@@ -20,13 +24,20 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
     private $filesystemMap;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
      * Constructor
      *
      * @param FilesystemMap $filesystemMap
+     * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
      */
-    public function __construct(FilesystemMap $filesystemMap)
+    public function __construct(FilesystemMap $filesystemMap, EventDispatcherInterface $eventDispatcher)
     {
         $this->filesystemMap = $filesystemMap;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -48,7 +59,13 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
         $fileSize = filesize($uploadedFile->getPath());
         $fileMimeType = $uploadedFile->getMimeType();
 
-        // todo: fire an event here (pre write)
+        $this->eventDispatcher->dispatch(StorageEvents::PRE_WRITE, new WriteUploadedFileEvent(
+            $entity,
+            $fileContent,
+            $fileMimeType,
+            $fileName,
+            $fileSize
+        ));
 
         $this
             ->filesystemMap
@@ -56,7 +73,13 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
             ->write($fileName, $fileContent, true)
         ;
 
-        // todo: fire an event here (post write)
+        $this->eventDispatcher->dispatch(StorageEvents::POST_WRITE, new WriteUploadedFileEvent(
+            $entity,
+            $fileContent,
+            $fileMimeType,
+            $fileName,
+            $fileSize
+        ));
 
         $entity
             ->setFileName($fileName)
@@ -72,7 +95,9 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
     {
         $this->throwIfEntityNotSupported($entity);
 
-        // todo: fire an event here (pre delete)
+        $this->eventDispatcher->dispatch(StorageEvents::PRE_DELETE, new DeleteUploadedFileEvent(
+            $entity
+        ));
 
         $this
             ->filesystemMap
@@ -80,7 +105,9 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
             ->delete($entity->getFileName())
         ;
 
-        // todo: fire an event here (post delete)
+        $this->eventDispatcher->dispatch(StorageEvents::PRE_DELETE, new DeleteUploadedFileEvent(
+            $entity
+        ));
     }
 
     /**
