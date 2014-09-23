@@ -4,7 +4,6 @@ namespace AshleyDawson\DoctrineGaufretteStorableBundle\EventListener;
 
 use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandlerInterface;
 use Doctrine\Common\EventSubscriber;
-use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
 
@@ -38,7 +37,6 @@ class UploadedFileSubscriber implements EventSubscriber
     {
         return [
             Events::loadClassMetadata,
-            Events::prePersist,
         ];
     }
 
