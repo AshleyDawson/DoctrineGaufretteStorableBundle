@@ -24,7 +24,9 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $em = new EventManager();
 
         $em->addEventSubscriber(
-            new UploadedFileSubscriber()
+            new UploadedFileSubscriber(
+                // todo: inject dependencies
+            )
         );
 
         return $em;

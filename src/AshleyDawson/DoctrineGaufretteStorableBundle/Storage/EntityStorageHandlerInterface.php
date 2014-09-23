@@ -38,4 +38,12 @@ interface EntityStorageHandlerInterface
      * @return void
      */
     public function deleteUploadedFile($entity);
+
+    /**
+     * Returns TRUE if the entity passed is supported by this handler
+     *
+     * @param object $entity
+     * @return bool
+     */
+    public static function isEntitySupported($entity);
 }

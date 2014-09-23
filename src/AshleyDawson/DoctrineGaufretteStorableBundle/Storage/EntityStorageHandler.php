@@ -119,9 +119,17 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
      */
     private function throwIfEntityNotSupported($entity)
     {
-        $traitNames = (new \ReflectionObject($entity))->getTraitNames();
-        if ( ! in_array(EntityStorageHandlerInterface::UPLOADED_FILE_TRAIT_NAME, $traitNames)) {
+        if ( ! self::isEntitySupported($entity)) {
             throw new EntityNotSupportedException();
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function isEntitySupported($entity)
+    {
+        $traitNames = (new \ReflectionObject($entity))->getTraitNames();
+        return in_array(EntityStorageHandlerInterface::UPLOADED_FILE_TRAIT_NAME, $traitNames);
     }
 }

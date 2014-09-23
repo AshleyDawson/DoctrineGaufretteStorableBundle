@@ -16,6 +16,21 @@ use Doctrine\ORM\Events;
 class UploadedFileSubscriber implements EventSubscriber
 {
     /**
+     * @var EntityStorageHandlerInterface
+     */
+    private $storageHandler;
+
+    /**
+     * Constructor
+     *
+     * @param EntityStorageHandlerInterface $storageHandler
+     */
+    public function __construct(EntityStorageHandlerInterface $storageHandler)
+    {
+        $this->storageHandler = $storageHandler;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getSubscribedEvents()
@@ -40,6 +55,8 @@ class UploadedFileSubscriber implements EventSubscriber
         $this->mapFields($args);
     }
 
+    // todo: write persist, update and remove handlers, firing the $this->storageHandler methods
+
     /**
      * Returns TRUE if the passed entity is supported by this listener
      *
@@ -48,8 +65,8 @@ class UploadedFileSubscriber implements EventSubscriber
      */
     private function isEntitySupported(LoadClassMetadataEventArgs $args)
     {
-        return in_array(EntityStorageHandlerInterface::UPLOADED_FILE_TRAIT_NAME,
-            $args->getClassMetadata()->getReflectionClass()->getTraitNames());
+        $clazz = get_class($this->storageHandler);
+        return $clazz::isEntitySupported($args->getEmptyInstance());
     }
 
     /**
