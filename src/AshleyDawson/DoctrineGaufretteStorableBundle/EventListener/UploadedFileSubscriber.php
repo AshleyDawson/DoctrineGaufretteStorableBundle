@@ -76,14 +76,16 @@ class UploadedFileSubscriber implements EventSubscriber
             ])
         ;
 
-        $meta->mapField([
+        $meta
+            ->mapField([
                 'fieldName' => 'fileSize',
                 'columnName' => 'file_size',
                 'type' => 'integer',
             ])
         ;
 
-        $meta->mapField([
+        $meta
+            ->mapField([
                 'fieldName' => 'fileMimeType',
                 'columnName' => 'file_mime_type',
                 'type' => 'string',
