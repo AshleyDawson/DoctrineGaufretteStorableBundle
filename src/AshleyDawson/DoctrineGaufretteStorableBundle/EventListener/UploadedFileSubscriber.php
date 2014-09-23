@@ -2,6 +2,7 @@
 
 namespace AshleyDawson\DoctrineGaufretteStorableBundle\EventListener;
 
+use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandlerInterface;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
@@ -14,12 +15,6 @@ use Doctrine\ORM\Events;
  */
 class UploadedFileSubscriber implements EventSubscriber
 {
-    /**
-     * UploadedFileTrait fully qualified class name
-     */
-    const UPLOADED_FILE_TRAIT_NAME
-        = 'AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFile\UploadedFileTrait';
-
     /**
      * {@inheritdoc}
      */
@@ -53,7 +48,7 @@ class UploadedFileSubscriber implements EventSubscriber
      */
     private function isEntitySupported(LoadClassMetadataEventArgs $args)
     {
-        return in_array(self::UPLOADED_FILE_TRAIT_NAME,
+        return in_array(EntityStorageHandlerInterface::UPLOADED_FILE_TRAIT_NAME,
             $args->getClassMetadata()->getReflectionClass()->getTraitNames());
     }
 

@@ -119,10 +119,10 @@ trait UploadedFileTrait
     /**
      * Set uploadedFile
      *
-     * @param \Symfony\Component\HttpFoundation\File\UploadedFile $uploadedFile
+     * @param \Symfony\Component\HttpFoundation\File\UploadedFile|null $uploadedFile
      * @return $this
      */
-    public function setUploadedFile(HTTPUploadedFile $uploadedFile)
+    public function setUploadedFile(HTTPUploadedFile $uploadedFile = null)
     {
         $this->uploadedFile = $uploadedFile;
         return $this;
