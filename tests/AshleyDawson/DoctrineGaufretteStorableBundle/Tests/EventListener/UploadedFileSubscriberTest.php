@@ -6,6 +6,7 @@ use AshleyDawson\DoctrineGaufretteStorableBundle\EventListener\UploadedFileSubsc
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\EntityManagerProvider;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity;
 use Doctrine\Common\EventManager;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
 {
@@ -42,17 +43,23 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $entity = (new UploadedFileEntity())
             ->setName('Entity Name')
-            ->setFileName('filename.gif')
-            ->setFileSize(200)
-            ->setFileMimeType('image/gif')
+            ->setUploadedFile($this->getTestUploadedFile())
         ;
 
         $em->persist($entity);
         $em->flush();
         $em->refresh($entity);
 
-        print_r($entity);
+        $this->assertEquals('Entity Name', $entity->getName());
+    }
 
-        exit;
+    /**
+     * @return UploadedFile
+     */
+    private function getTestUploadedFile()
+    {
+        $path = __DIR__ . '/../Resources/fixtures/file/sample-image.gif';
+
+        return new UploadedFile($path, 'sample-image.gif', 'image/gif', filesize($path));
     }
 }
