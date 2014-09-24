@@ -153,6 +153,7 @@ class UploadedFileSubscriber implements EventSubscriber
                 'columnName' => 'file_name',
                 'type' => 'string',
                 'length' => 255,
+                'nullable' => true,
             ])
         ;
 
@@ -162,6 +163,7 @@ class UploadedFileSubscriber implements EventSubscriber
                 'columnName' => 'file_storage_path',
                 'type' => 'string',
                 'length' => 255,
+                'nullable' => true,
             ])
         ;
 
@@ -170,6 +172,7 @@ class UploadedFileSubscriber implements EventSubscriber
                 'fieldName' => 'fileSize',
                 'columnName' => 'file_size',
                 'type' => 'integer',
+                'nullable' => true,
             ])
         ;
 
@@ -179,6 +182,7 @@ class UploadedFileSubscriber implements EventSubscriber
                 'columnName' => 'file_mime_type',
                 'type' => 'string',
                 'length' => 130,
+                'nullable' => true,
             ])
         ;
     }

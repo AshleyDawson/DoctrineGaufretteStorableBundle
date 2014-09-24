@@ -6,7 +6,6 @@ use AshleyDawson\DoctrineGaufretteStorableBundle\Event\DeleteUploadedFileEvent;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Event\StorageEvents;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Event\WriteUploadedFileEvent;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Exception\EntityNotSupportedException;
-use AshleyDawson\DoctrineGaufretteStorableBundle\Exception\UploadedFileNotFoundException;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Exception\UploadedFileNotReadableException;
 use Knp\Bundle\GaufretteBundle\FilesystemMap;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -53,7 +52,7 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
         $uploadedFile = $entity->getUploadedFile();
 
         if ( ! ($uploadedFile instanceof UploadedFile)) {
-            throw new UploadedFileNotFoundException(sprintf('Uploaded file could not be found in entity'));
+            return;
         }
 
         if ( ! $uploadedFile->isReadable()) {

@@ -118,6 +118,25 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->assertNotEquals($fileSizeBeforeUpdate, $entity->getFileSize());
     }
 
+    public function testUpdateEntityWithoutUploadedFile()
+    {
+        $em = $this->getEntityManager();
+
+        $entity = (new UploadedFileEntity())
+            ->setName('Entity Name Three')
+        ;
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('Entity Name Three', $entity->getName());
+        $this->assertNull($entity->getFileName());
+        $this->assertNull($entity->getFileStoragePath());
+        $this->assertNull($entity->getFileMimeType());
+        $this->assertNull($entity->getFileSize());
+    }
+
     public function testRemoveEntity()
     {
         $em = $this->getEntityManager();
