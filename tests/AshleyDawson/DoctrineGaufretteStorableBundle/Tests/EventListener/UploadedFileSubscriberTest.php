@@ -69,6 +69,10 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $em->refresh($entity);
 
         $this->assertEquals('Entity Name', $entity->getName());
+        $this->assertNotNull($entity->getFileName());
+        $this->assertNotNull($entity->getFileStoragePath());
+        $this->assertNotNull($entity->getFileMimeType());
+        $this->assertNotNull($entity->getFileSize());
         $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
     }
 
@@ -85,6 +89,11 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $em->flush();
         $em->refresh($entity);
 
+        $fileNameBeforeUpdate = $entity->getFileName();
+        $fileStoragePathBeforeUpdate = $entity->getFileStoragePath();
+        $fileMimeTypeBeforeUpdate = $entity->getFileMimeType();
+        $fileSizeBeforeUpdate = $entity->getFileSize();
+
         $this->assertEquals('Entity Name Two', $entity->getName());
         $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
 
@@ -96,6 +105,43 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('Entity Name Two', $entity->getName());
         $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-two.jpg');
+        $this->assertFileNotExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+
+        $this->assertNotNull($entity->getFileName());
+        $this->assertNotNull($entity->getFileStoragePath());
+        $this->assertNotNull($entity->getFileMimeType());
+        $this->assertNotNull($entity->getFileSize());
+
+        $this->assertNotEquals($fileNameBeforeUpdate, $entity->getFileName());
+        $this->assertNotEquals($fileStoragePathBeforeUpdate, $entity->getFileStoragePath());
+        $this->assertNotEquals($fileMimeTypeBeforeUpdate, $entity->getFileMimeType());
+        $this->assertNotEquals($fileSizeBeforeUpdate, $entity->getFileSize());
+    }
+
+    public function testRemoveEntity()
+    {
+        $em = $this->getEntityManager();
+
+        $entity = (new UploadedFileEntity())
+            ->setName('Entity Name')
+            ->setUploadedFile($this->getTestUploadedFileOne())
+        ;
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('Entity Name', $entity->getName());
+        $this->assertNotNull($entity->getFileName());
+        $this->assertNotNull($entity->getFileStoragePath());
+        $this->assertNotNull($entity->getFileMimeType());
+        $this->assertNotNull($entity->getFileSize());
+        $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+
+        $em->remove($entity);
+        $em->flush();
+
+        $this->assertFalse($em->contains($entity));
         $this->assertFileNotExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
     }
 

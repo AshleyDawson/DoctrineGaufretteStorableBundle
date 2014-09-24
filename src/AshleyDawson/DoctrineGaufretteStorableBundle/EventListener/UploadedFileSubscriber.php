@@ -7,7 +7,6 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 
 /**
@@ -42,6 +41,7 @@ class UploadedFileSubscriber implements EventSubscriber
             Events::loadClassMetadata,
             Events::prePersist,
             Events::preFlush,
+            Events::postRemove,
         ];
     }
 
@@ -107,6 +107,20 @@ class UploadedFileSubscriber implements EventSubscriber
                 }
             }
         }
+    }
+
+    /**
+     * Listen to postRemove events
+     *
+     * @param LifecycleEventArgs $args
+     */
+    public function postRemove(LifecycleEventArgs $args)
+    {
+        if ( ! $this->isEntitySupported($args->getEntity())) {
+            return;
+        }
+
+        $this->storageHandler->deleteUploadedFile($args->getEntity());
     }
 
     /**
