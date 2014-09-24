@@ -6,6 +6,7 @@ use AshleyDawson\DoctrineGaufretteStorableBundle\EventListener\UploadedFileSubsc
 use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandler;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandlerInterface;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\EntityManagerProvider;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\EntityWithoutUploadedFileTrait;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Model\UploadedFileTraitTest;
 use Doctrine\Common\EventManager;
@@ -21,7 +22,8 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
     protected function getUsedEntityFixtures()
     {
         return [
-            'AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity'
+            'AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity',
+            'AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\EntityWithoutUploadedFileTrait',
         ];
     }
 
@@ -222,6 +224,64 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($entity->getFileStoragePath());
         $this->assertNull($entity->getFileMimeType());
         $this->assertNull($entity->getFileSize());
+
+        $em->remove($entity);
+        $em->flush();
+
+        $this->assertFalse($em->contains($entity));
+    }
+
+    public function testUnsupportedEntityPersist()
+    {
+        $em = $this->getEntityManager();
+
+        $entity = (new EntityWithoutUploadedFileTrait())
+            ->setName('Unsupported Entity Name One')
+        ;
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('Unsupported Entity Name One', $entity->getName());
+    }
+
+    public function testUnsupportedEntityUpdate()
+    {
+        $em = $this->getEntityManager();
+
+        $entity = (new EntityWithoutUploadedFileTrait())
+            ->setName('Unsupported Entity Name One')
+        ;
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('Unsupported Entity Name One', $entity->getName());
+
+        $entity->setName('Unsupported Entity Name Two');
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('Unsupported Entity Name Two', $entity->getName());
+    }
+
+    public function testUnsupportedEntityRemove()
+    {
+        $em = $this->getEntityManager();
+
+        $entity = (new EntityWithoutUploadedFileTrait())
+            ->setName('Unsupported Entity Name One')
+        ;
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('Unsupported Entity Name One', $entity->getName());
 
         $em->remove($entity);
         $em->flush();
