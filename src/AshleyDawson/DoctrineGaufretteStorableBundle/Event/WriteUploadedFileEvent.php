@@ -43,6 +43,11 @@ class WriteUploadedFileEvent extends Event
     private $fileStoragePath;
 
     /**
+     * @var string
+     */
+    private $fileExtension;
+
+    /**
      * Constructor
      *
      * @param object $entity
@@ -51,8 +56,9 @@ class WriteUploadedFileEvent extends Event
      * @param string $fileName
      * @param int $fileSize
      * @param string $fileStoragePath
+     * @param string $fileExtension
      */
-    public function __construct($entity, $fileContent, $fileMimeType, $fileName, $fileSize, $fileStoragePath)
+    public function __construct($entity, $fileContent, $fileMimeType, $fileName, $fileSize, $fileStoragePath, $fileExtension)
     {
         $this->entity = $entity;
         $this->fileContent = $fileContent;
@@ -60,6 +66,7 @@ class WriteUploadedFileEvent extends Event
         $this->fileName = $fileName;
         $this->fileSize = $fileSize;
         $this->fileStoragePath = $fileStoragePath;
+        $this->fileExtension = $fileExtension;
     }
 
     /**
@@ -139,18 +146,6 @@ class WriteUploadedFileEvent extends Event
     }
 
     /**
-     * Set fileSize
-     *
-     * @param int $fileSize
-     * @return $this
-     */
-    public function setFileSize($fileSize)
-    {
-        $this->fileSize = $fileSize;
-        return $this;
-    }
-
-    /**
      * Get entity
      *
      * @return object
@@ -158,18 +153,6 @@ class WriteUploadedFileEvent extends Event
     public function getEntity()
     {
         return $this->entity;
-    }
-
-    /**
-     * Set entity
-     *
-     * @param object $entity
-     * @return $this
-     */
-    public function setEntity($entity)
-    {
-        $this->entity = $entity;
-        return $this;
     }
 
     /**
@@ -191,6 +174,28 @@ class WriteUploadedFileEvent extends Event
     public function setFileStoragePath($fileStoragePath)
     {
         $this->fileStoragePath = $fileStoragePath;
+        return $this;
+    }
+
+    /**
+     * Get fileExtension
+     *
+     * @return string
+     */
+    public function getFileExtension()
+    {
+        return $this->fileExtension;
+    }
+
+    /**
+     * Set fileExtension
+     *
+     * @param string $fileExtension
+     * @return $this
+     */
+    public function setFileExtension($fileExtension)
+    {
+        $this->fileExtension = $fileExtension;
         return $this;
     }
 }
