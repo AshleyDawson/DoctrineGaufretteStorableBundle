@@ -1,12 +1,12 @@
 <?php
 
-namespace AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFile;
+namespace AshleyDawson\DoctrineGaufretteStorableBundle\Model;
 
-use Symfony\Component\HttpFoundation\File\UploadedFile as HTTPUploadedFile;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Trait UploadedFileTrait
- * @package AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFile
+ * @package AshleyDawson\DoctrineGaufretteStorableBundle\Model
  *
  * @author Ashley Dawson <ashley@ashleydawson.co.uk>
  */
@@ -16,6 +16,11 @@ trait UploadedFileTrait
      * @var string
      */
     private $fileName;
+
+    /**
+     * @var string
+     */
+    private $fileStoragePath;
 
     /**
      * @var int Size in bytes
@@ -41,28 +46,6 @@ trait UploadedFileTrait
     abstract public function getFilesystemMapId();
 
     /**
-     * Get fileMimeType
-     *
-     * @return string
-     */
-    public function getFileMimeType()
-    {
-        return $this->fileMimeType;
-    }
-
-    /**
-     * Set fileMimeType
-     *
-     * @param string $fileMimeType
-     * @return $this
-     */
-    public function setFileMimeType($fileMimeType)
-    {
-        $this->fileMimeType = $fileMimeType;
-        return $this;
-    }
-
-    /**
      * Get fileName
      *
      * @return string
@@ -81,6 +64,50 @@ trait UploadedFileTrait
     public function setFileName($fileName)
     {
         $this->fileName = $fileName;
+        return $this;
+    }
+
+    /**
+     * Get fileStoragePath
+     *
+     * @return string
+     */
+    public function getFileStoragePath()
+    {
+        return $this->fileStoragePath;
+    }
+
+    /**
+     * Set fileStoragePath
+     *
+     * @param string $fileStoragePath
+     * @return $this
+     */
+    public function setFileStoragePath($fileStoragePath)
+    {
+        $this->fileStoragePath = $fileStoragePath;
+        return $this;
+    }
+
+    /**
+     * Get fileMimeType
+     *
+     * @return string
+     */
+    public function getFileMimeType()
+    {
+        return $this->fileMimeType;
+    }
+
+    /**
+     * Set fileMimeType
+     *
+     * @param string $fileMimeType
+     * @return $this
+     */
+    public function setFileMimeType($fileMimeType)
+    {
+        $this->fileMimeType = $fileMimeType;
         return $this;
     }
 
@@ -122,7 +149,7 @@ trait UploadedFileTrait
      * @param \Symfony\Component\HttpFoundation\File\UploadedFile|null $uploadedFile
      * @return $this
      */
-    public function setUploadedFile(HTTPUploadedFile $uploadedFile = null)
+    public function setUploadedFile(UploadedFile $uploadedFile = null)
     {
         $this->uploadedFile = $uploadedFile;
         return $this;

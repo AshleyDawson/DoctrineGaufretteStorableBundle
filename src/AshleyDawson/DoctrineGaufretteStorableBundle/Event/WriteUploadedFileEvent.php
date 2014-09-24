@@ -38,6 +38,11 @@ class WriteUploadedFileEvent extends Event
     private $entity;
 
     /**
+     * @var string
+     */
+    private $fileStoragePath;
+
+    /**
      * Constructor
      *
      * @param object $entity
@@ -45,14 +50,16 @@ class WriteUploadedFileEvent extends Event
      * @param string $fileMimeType
      * @param string $fileName
      * @param int $fileSize
+     * @param string $fileStoragePath
      */
-    public function __construct($entity, $fileContent, $fileMimeType, $fileName, $fileSize)
+    public function __construct($entity, $fileContent, $fileMimeType, $fileName, $fileSize, $fileStoragePath)
     {
         $this->entity = $entity;
         $this->fileContent = $fileContent;
         $this->fileMimeType = $fileMimeType;
         $this->fileName = $fileName;
         $this->fileSize = $fileSize;
+        $this->fileStoragePath = $fileStoragePath;
     }
 
     /**
@@ -162,6 +169,28 @@ class WriteUploadedFileEvent extends Event
     public function setEntity($entity)
     {
         $this->entity = $entity;
+        return $this;
+    }
+
+    /**
+     * Get fileStoragePath
+     *
+     * @return string
+     */
+    public function getFileStoragePath()
+    {
+        return $this->fileStoragePath;
+    }
+
+    /**
+     * Set fileStoragePath
+     *
+     * @param string $fileStoragePath
+     * @return $this
+     */
+    public function setFileStoragePath($fileStoragePath)
+    {
+        $this->fileStoragePath = $fileStoragePath;
         return $this;
     }
 }

@@ -7,6 +7,7 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 
 /**
@@ -52,13 +53,20 @@ class UploadedFileSubscriber implements EventSubscriber
      */
     public function loadClassMetadata(LoadClassMetadataEventArgs $args)
     {
-        if ( ! $this->isEntitySupported($args->getEmptyInstance())) {
+        // todo: make this DRY, use $this->isEntitySupported($entity)
+        if ( ! in_array(EntityStorageHandlerInterface::UPLOADED_FILE_TRAIT_NAME,
+            $args->getClassMetadata()->getReflectionClass()->getTraitNames())) {
             return;
         }
 
         $this->mapFields($args);
     }
 
+    /**
+     * Listen to prePersist events
+     *
+     * @param LifecycleEventArgs $args
+     */
     public function prePersist(LifecycleEventArgs $args)
     {
         if ( ! $this->isEntitySupported($args->getEntity())) {
@@ -72,14 +80,9 @@ class UploadedFileSubscriber implements EventSubscriber
      * Listen to preFlush events
      *
      * @param PreFlushEventArgs $args
-     * @return void
      */
     public function preFlush(PreFlushEventArgs $args)
     {
-        if ( ! $this->isEntitySupported($args->getEmptyInstance())) {
-            return;
-        }
-
         $unitOfWork = $args->getEntityManager()->getUnitOfWork();
 
         foreach ($unitOfWork->getIdentityMap() as $identity) {
@@ -90,10 +93,14 @@ class UploadedFileSubscriber implements EventSubscriber
                     continue;
                 }
 
-                if ($unitOfWork->isScheduledForUpdate($entity)) {
+                // todo: look at using this event hook for handling persist and remove as well
+                if ($unitOfWork->isScheduledForInsert($entity) || $unitOfWork->isScheduledForDelete($entity)) {
+                    continue;
+                }
 
-                    $this->storageHandler->deleteUploadedFile($entity);
-                    $this->storageHandler->writeUploadedFile($entity);
+                if ($entity->getUploadedFile()) {
+
+                    $this->storageHandler->writeUploadedFile($entity, true);
 
                     $unitOfWork->propertyChanged($entity, 'fileName', $entity->getFileName(), $entity->getFileName());
                     $unitOfWork->scheduleForUpdate($entity);
@@ -117,6 +124,8 @@ class UploadedFileSubscriber implements EventSubscriber
     /**
      * Map fields to entity
      *
+     * @todo handle ODM mapping
+     *
      * @param LoadClassMetadataEventArgs $args
      */
     private function mapFields(LoadClassMetadataEventArgs $args)
@@ -128,6 +137,15 @@ class UploadedFileSubscriber implements EventSubscriber
             ->mapField([
                 'fieldName' => 'fileName',
                 'columnName' => 'file_name',
+                'type' => 'string',
+                'length' => 255,
+            ])
+        ;
+
+        $meta
+            ->mapField([
+                'fieldName' => 'fileStoragePath',
+                'columnName' => 'file_storage_path',
                 'type' => 'string',
                 'length' => 255,
             ])

@@ -1,7 +1,8 @@
 <?php
 
-namespace AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Model\UploadedFile;
+namespace AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Model;
 
+use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandlerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class UploadedFileTraitTest extends \PHPUnit_Framework_TestCase
@@ -11,11 +12,11 @@ class UploadedFileTraitTest extends \PHPUnit_Framework_TestCase
      */
     private $mock;
 
-    const MOCK_FILESYSTEM_MAP_ID = 'mock.filesystem.map';
+    const MOCK_FILESYSTEM_MAP_ID = 'mock_filesystem_map';
 
     protected function setUp()
     {
-        $this->mock = $this->getMockForTrait('AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFile\UploadedFileTrait');
+        $this->mock = $this->getMockForTrait(EntityStorageHandlerInterface::UPLOADED_FILE_TRAIT_NAME);
         $this
             ->mock
             ->expects($this->any())
@@ -60,8 +61,8 @@ class UploadedFileTraitTest extends \PHPUnit_Framework_TestCase
 
     public function testUploadedFileAccessorMutator()
     {
-        $path = __DIR__ . '/../../Resources/fixtures/file/sample-image.gif';
-        $originalName = 'sample-image.gif';
+        $path = __DIR__ . '/../Resources/fixtures/file/sample-image-one.gif';
+        $originalName = 'sample-image-one.gif';
         $mimeType = 'image/gif';
         $size = filesize($path);
 

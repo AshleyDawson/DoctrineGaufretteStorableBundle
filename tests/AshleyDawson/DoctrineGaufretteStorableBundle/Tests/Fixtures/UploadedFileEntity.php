@@ -2,7 +2,8 @@
 
 namespace AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures;
 
-use AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFile\UploadedFileTrait;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFileTrait;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Model\UploadedFileTraitTest;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -96,6 +97,6 @@ class UploadedFileEntity
      */
     public function getFilesystemMapId()
     {
-        return 'test_filesystem_map_id';
+        return UploadedFileTraitTest::MOCK_FILESYSTEM_MAP_ID;
     }
 }

@@ -6,9 +6,11 @@ use AshleyDawson\DoctrineGaufretteStorableBundle\Event\DeleteUploadedFileEvent;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Event\StorageEvents;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Event\WriteUploadedFileEvent;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Exception\EntityNotSupportedException;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Exception\UploadedFileNotFoundException;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Exception\UploadedFileNotReadableException;
 use Knp\Bundle\GaufretteBundle\FilesystemMap;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class EntityStorageHandler
@@ -43,19 +45,40 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function writeUploadedFile($entity)
+    public function writeUploadedFile($entity, $canDeletePreviousFile = false)
     {
         $this->throwIfEntityNotSupported($entity);
 
         /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $uploadedFile */
         $uploadedFile = $entity->getUploadedFile();
+
+        if ( ! ($uploadedFile instanceof UploadedFile)) {
+            throw new UploadedFileNotFoundException(sprintf('Uploaded file could not be found in entity'));
+        }
+
         if ( ! $uploadedFile->isReadable()) {
             throw new UploadedFileNotReadableException(
                 sprintf('The uploaded file "%s" is not readable', $uploadedFile->getPath()));
         }
 
+        if ($canDeletePreviousFile && $entity->getFileStoragePath()) {
+
+            if ($this->getFilesystemForEntity($entity)->has($entity->getFileStoragePath())) {
+
+                try {
+                    $this
+                        ->getFilesystemForEntity($entity)
+                        ->delete($entity->getFileStoragePath())
+                    ;
+                }
+                catch (\RuntimeException $e) {
+                    // todo: should we care if this fails? Maybe log the incident
+                }
+            }
+        }
+
         $fileContent = file_get_contents($uploadedFile->getPathname());
-        $fileName = $uploadedFile->getClientOriginalName();
+        $fileName = $fileStoragePath = (string) $uploadedFile->getClientOriginalName();
         $fileSize = $uploadedFile->getSize();
         $fileMimeType = $uploadedFile->getMimeType();
 
@@ -64,13 +87,13 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
             $fileContent,
             $fileMimeType,
             $fileName,
-            $fileSize
+            $fileSize,
+            $fileStoragePath
         ));
 
         $this
-            ->filesystemMap
-            ->get($entity->getFilesystemMapId())
-            ->write($fileName, $fileContent, true)
+            ->getFilesystemForEntity($entity)
+            ->write($fileStoragePath, $fileContent, true)
         ;
 
         $this->eventDispatcher->dispatch(StorageEvents::POST_WRITE, new WriteUploadedFileEvent(
@@ -78,11 +101,13 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
             $fileContent,
             $fileMimeType,
             $fileName,
-            $fileSize
+            $fileSize,
+            $fileStoragePath
         ));
 
         $entity
             ->setFileName($fileName)
+            ->setFileStoragePath($fileStoragePath)
             ->setFileSize($fileSize)
             ->setFileMimeType($fileMimeType)
         ;
@@ -100,9 +125,8 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
         ));
 
         $this
-            ->filesystemMap
-            ->get($entity->getFilesystemMapId())
-            ->delete($entity->getFileName())
+            ->getFilesystemForEntity($entity)
+            ->delete($entity->getFileStoragePath())
         ;
 
         $this->eventDispatcher->dispatch(StorageEvents::POST_DELETE, new DeleteUploadedFileEvent(
@@ -131,5 +155,19 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
     {
         $traitNames = (new \ReflectionObject($entity))->getTraitNames();
         return in_array(EntityStorageHandlerInterface::UPLOADED_FILE_TRAIT_NAME, $traitNames);
+    }
+
+    /**
+     * Try to get the filesystem for the entity passed
+     *
+     * @param object $entity
+     * @return \Gaufrette\Filesystem
+     */
+    private function getFilesystemForEntity($entity)
+    {
+        return $this
+            ->filesystemMap
+            ->get($entity->getFilesystemMapId())
+        ;
     }
 }

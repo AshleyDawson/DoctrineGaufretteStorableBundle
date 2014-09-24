@@ -4,8 +4,10 @@ namespace AshleyDawson\DoctrineGaufretteStorableBundle\Tests\EventListener;
 
 use AshleyDawson\DoctrineGaufretteStorableBundle\EventListener\UploadedFileSubscriber;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandler;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandlerInterface;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\EntityManagerProvider;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Model\UploadedFileTraitTest;
 use Doctrine\Common\EventManager;
 use Knp\Bundle\GaufretteBundle\FilesystemMap;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -31,7 +33,7 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $filesystem = new Filesystem($adapter);
 
         $filesystemMap = new FilesystemMap([
-            'test_filesystem_map_id' => $filesystem,
+            UploadedFileTraitTest::MOCK_FILESYSTEM_MAP_ID => $filesystem,
         ]);
 
         $em->addEventSubscriber(
@@ -50,7 +52,7 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
     {
         $reflection = new \ReflectionClass('AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity');
 
-        $this->assertTrue(in_array('AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFile\UploadedFileTrait', $reflection->getTraitNames()));
+        $this->assertTrue(in_array(EntityStorageHandlerInterface::UPLOADED_FILE_TRAIT_NAME, $reflection->getTraitNames()));
     }
 
     public function testPersistEntity()
@@ -59,7 +61,7 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $entity = (new UploadedFileEntity())
             ->setName('Entity Name')
-            ->setUploadedFile($this->getTestUploadedFile())
+            ->setUploadedFile($this->getTestUploadedFileOne())
         ;
 
         $em->persist($entity);
@@ -67,15 +69,53 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $em->refresh($entity);
 
         $this->assertEquals('Entity Name', $entity->getName());
+        $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+    }
+
+    public function testUpdateEntity()
+    {
+        $em = $this->getEntityManager();
+
+        $entity = (new UploadedFileEntity())
+            ->setName('Entity Name Two')
+            ->setUploadedFile($this->getTestUploadedFileOne())
+        ;
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('Entity Name Two', $entity->getName());
+        $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+
+        $entity->setUploadedFile($this->getTestUploadedFileTwo());
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('Entity Name Two', $entity->getName());
+        $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-two.jpg');
+        $this->assertFileNotExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
     }
 
     /**
      * @return UploadedFile
      */
-    private function getTestUploadedFile()
+    private function getTestUploadedFileOne()
     {
-        $path = __DIR__ . '/../Resources/fixtures/file/sample-image.gif';
+        $path = __DIR__ . '/../Resources/fixtures/file/sample-image-one.gif';
 
-        return new UploadedFile($path, 'sample-image.gif', 'image/gif', filesize($path));
+        return new UploadedFile($path, 'sample-image-one.gif', 'image/gif', filesize($path));
+    }
+
+    /**
+     * @return UploadedFile
+     */
+    private function getTestUploadedFileTwo()
+    {
+        $path = __DIR__ . '/../Resources/fixtures/file/sample-image-two.jpg';
+
+        return new UploadedFile($path, 'sample-image-two.jpg', 'image/jpg', filesize($path));
     }
 }
