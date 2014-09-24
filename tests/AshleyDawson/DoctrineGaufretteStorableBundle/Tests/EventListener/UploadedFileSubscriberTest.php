@@ -229,6 +229,12 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($em->contains($entity));
     }
 
+    public function tearDown()
+    {
+        @unlink(TESTS_TEMP_DIR . '/sample-image-one.gif');
+        @unlink(TESTS_TEMP_DIR . '/sample-image-two.jpg');
+    }
+
     /**
      * @return UploadedFile
      */
