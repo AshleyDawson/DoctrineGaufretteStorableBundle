@@ -123,10 +123,18 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
             $entity
         ));
 
-        $this
-            ->getFilesystemForEntity($entity)
-            ->delete($entity->getFileStoragePath())
-        ;
+        if ($entity->getFileStoragePath()) {
+
+            try {
+                $this
+                    ->getFilesystemForEntity($entity)
+                    ->delete($entity->getFileStoragePath())
+                ;
+            }
+            catch (\RuntimeException $e) {
+                // todo: should we care if this fails? Maybe log the incident
+            }
+        }
 
         $this->eventDispatcher->dispatch(StorageEvents::POST_DELETE, new DeleteUploadedFileEvent(
             $entity

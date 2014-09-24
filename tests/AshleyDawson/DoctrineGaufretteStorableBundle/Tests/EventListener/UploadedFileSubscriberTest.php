@@ -118,7 +118,7 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->assertNotEquals($fileSizeBeforeUpdate, $entity->getFileSize());
     }
 
-    public function testUpdateEntityWithoutUploadedFile()
+    public function testPersistEntityWithoutUploadedFile()
     {
         $em = $this->getEntityManager();
 
@@ -135,6 +135,47 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($entity->getFileStoragePath());
         $this->assertNull($entity->getFileMimeType());
         $this->assertNull($entity->getFileSize());
+    }
+
+    public function testUpdateEntityWithoutUploadedFile()
+    {
+        $em = $this->getEntityManager();
+
+        $entity = (new UploadedFileEntity())
+            ->setName('Entity Name Two')
+            ->setUploadedFile($this->getTestUploadedFileOne())
+        ;
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $fileNameBeforeUpdate = $entity->getFileName();
+        $fileStoragePathBeforeUpdate = $entity->getFileStoragePath();
+        $fileMimeTypeBeforeUpdate = $entity->getFileMimeType();
+        $fileSizeBeforeUpdate = $entity->getFileSize();
+
+        $this->assertEquals('Entity Name Two', $entity->getName());
+        $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+
+        $entity->setUploadedFile(null);
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('Entity Name Two', $entity->getName());
+        $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+
+        $this->assertNotNull($entity->getFileName());
+        $this->assertNotNull($entity->getFileStoragePath());
+        $this->assertNotNull($entity->getFileMimeType());
+        $this->assertNotNull($entity->getFileSize());
+
+        $this->assertEquals($fileNameBeforeUpdate, $entity->getFileName());
+        $this->assertEquals($fileStoragePathBeforeUpdate, $entity->getFileStoragePath());
+        $this->assertEquals($fileMimeTypeBeforeUpdate, $entity->getFileMimeType());
+        $this->assertEquals($fileSizeBeforeUpdate, $entity->getFileSize());
     }
 
     public function testRemoveEntity()
@@ -162,6 +203,30 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFalse($em->contains($entity));
         $this->assertFileNotExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+    }
+
+    public function testRemoveEntityWithoutUploadedFile()
+    {
+        $em = $this->getEntityManager();
+
+        $entity = (new UploadedFileEntity())
+            ->setName('Entity Name')
+        ;
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('Entity Name', $entity->getName());
+        $this->assertNull($entity->getFileName());
+        $this->assertNull($entity->getFileStoragePath());
+        $this->assertNull($entity->getFileMimeType());
+        $this->assertNull($entity->getFileSize());
+
+        $em->remove($entity);
+        $em->flush();
+
+        $this->assertFalse($em->contains($entity));
     }
 
     /**
