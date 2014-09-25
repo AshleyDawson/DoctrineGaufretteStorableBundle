@@ -82,7 +82,7 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
         $fileMimeType = $uploadedFile->getMimeType();
         $fileExtension = $uploadedFile->getExtension();
 
-        $this->eventDispatcher->dispatch(StorageEvents::PRE_WRITE, new WriteUploadedFileEvent(
+        $event = new WriteUploadedFileEvent(
             $entity,
             $fileContent,
             $fileMimeType,
@@ -90,28 +90,22 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
             $fileSize,
             $fileStoragePath,
             $fileExtension
-        ));
+        );
+
+        $this->eventDispatcher->dispatch(StorageEvents::PRE_WRITE, $event);
 
         $this
             ->getFilesystemForEntity($entity)
-            ->write($fileStoragePath, $fileContent, true)
+            ->write($event->getFileStoragePath(), $event->getFileContent(), true)
         ;
 
-        $this->eventDispatcher->dispatch(StorageEvents::POST_WRITE, new WriteUploadedFileEvent(
-            $entity,
-            $fileContent,
-            $fileMimeType,
-            $fileName,
-            $fileSize,
-            $fileStoragePath,
-            $fileExtension
-        ));
+        $this->eventDispatcher->dispatch(StorageEvents::POST_WRITE, $event);
 
         $entity
-            ->setFileName($fileName)
-            ->setFileStoragePath($fileStoragePath)
-            ->setFileSize($fileSize)
-            ->setFileMimeType($fileMimeType)
+            ->setFileName($event->getFileName())
+            ->setFileStoragePath($event->getFileStoragePath())
+            ->setFileSize($event->getFileSize())
+            ->setFileMimeType($event->getFileMimeType())
         ;
     }
 

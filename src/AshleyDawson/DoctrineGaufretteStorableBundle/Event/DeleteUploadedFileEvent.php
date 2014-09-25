@@ -24,28 +24,17 @@ class DeleteUploadedFileEvent extends Event
      */
     public function __construct($entity)
     {
-        $this->entity = $entity;
+        // Dereference entity to avoid changes that might affect deletion
+        $this->entity = clone $entity;
     }
 
     /**
-     * Get entity
+     * Get entity clone (de-referenced)
      *
-     * @return object
+     * @return \AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFileTrait
      */
-    public function getEntity()
+    public function getEntityClone()
     {
         return $this->entity;
-    }
-
-    /**
-     * Set entity
-     *
-     * @param object $entity
-     * @return $this
-     */
-    public function setEntity($entity)
-    {
-        $this->entity = $entity;
-        return $this;
     }
 }

@@ -148,7 +148,7 @@ class WriteUploadedFileEvent extends Event
     /**
      * Get entity
      *
-     * @return object
+     * @return \AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFileTrait
      */
     public function getEntity()
     {

@@ -2,6 +2,9 @@
 
 namespace AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Storage;
 
+use AshleyDawson\DoctrineGaufretteStorableBundle\Event\DeleteUploadedFileEvent;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Event\StorageEvents;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Event\WriteUploadedFileEvent;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandler;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\EntityWithoutUploadedFileTrait;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity;
@@ -10,6 +13,7 @@ use Gaufrette\Filesystem;
 use Gaufrette\Adapter\Local as LocalAdapter;
 use Knp\Bundle\GaufretteBundle\FilesystemMap;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * Class EntityStorageHandlerTest
@@ -24,8 +28,15 @@ class EntityStorageHandlerTest extends \PHPUnit_Framework_TestCase
      */
     private $storageHandler;
 
+    /**
+     * @var EventDispatcher
+     */
+    private $eventDispatcher;
+
     protected function setUp()
     {
+        $this->eventDispatcher = new EventDispatcher();
+
         $adapter = new LocalAdapter(TESTS_TEMP_DIR);
         $filesystem = new Filesystem($adapter);
 
@@ -35,7 +46,7 @@ class EntityStorageHandlerTest extends \PHPUnit_Framework_TestCase
 
         $this->storageHandler = new EntityStorageHandler(
             $filesystemMap,
-            $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
+            $this->eventDispatcher
         );
     }
 
@@ -128,10 +139,119 @@ class EntityStorageHandlerTest extends \PHPUnit_Framework_TestCase
         $this->storageHandler->deleteUploadedFile($entity);
     }
 
+    public function testWriteEvents()
+    {
+        $this->eventDispatcher->addListener(StorageEvents::PRE_WRITE, function (WriteUploadedFileEvent $event) {
+
+            $this->assertEquals('sample-image-one.gif', $event->getFileName());
+            $this->assertEquals('sample-image-one.gif', $event->getFileStoragePath());
+            $this->assertEquals('image/gif', $event->getFileMimeType());
+            $this->assertGreaterThan(0, $event->getFileSize());
+            $this->assertEquals('gif', $event->getFileExtension());
+            $this->assertInstanceOf('AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity', $event->getEntity());
+
+            $event->setFileName('foo-bar.gif');
+            $event->setFileStoragePath('fib-baz.gif');
+        });
+
+        $this->eventDispatcher->addListener(StorageEvents::POST_WRITE, function (WriteUploadedFileEvent $event) {
+
+            $this->assertEquals('foo-bar.gif', $event->getFileName());
+            $this->assertEquals('fib-baz.gif', $event->getFileStoragePath());
+            $this->assertEquals('image/gif', $event->getFileMimeType());
+            $this->assertGreaterThan(0, $event->getFileSize());
+            $this->assertEquals('gif', $event->getFileExtension());
+            $this->assertInstanceOf('AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity', $event->getEntity());
+        });
+
+        $entity = (new UploadedFileEntity())
+            ->setUploadedFile($this->getTestUploadedFileOne())
+        ;
+
+        $this->storageHandler->writeUploadedFile($entity);
+
+        $this->assertEquals('foo-bar.gif', $entity->getFileName());
+
+        $this->assertFileExists(TESTS_TEMP_DIR . '/fib-baz.gif');
+    }
+
+    public function testDeleteEvents()
+    {
+        $this->eventDispatcher->addListener(StorageEvents::PRE_DELETE, function (DeleteUploadedFileEvent $event) {
+
+            $this->assertEquals('sample-image-one.gif', $event->getEntityClone()->getFileName());
+            $this->assertEquals('sample-image-one.gif', $event->getEntityClone()->getFileStoragePath());
+            $this->assertEquals('image/gif', $event->getEntityClone()->getFileMimeType());
+            $this->assertGreaterThan(0, $event->getEntityClone()->getFileSize());
+            $this->assertInstanceOf('AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity', $event->getEntityClone());
+        });
+
+        $this->eventDispatcher->addListener(StorageEvents::POST_DELETE, function (DeleteUploadedFileEvent $event) {
+
+            $this->assertEquals('sample-image-one.gif', $event->getEntityClone()->getFileName());
+            $this->assertEquals('sample-image-one.gif', $event->getEntityClone()->getFileStoragePath());
+            $this->assertEquals('image/gif', $event->getEntityClone()->getFileMimeType());
+            $this->assertGreaterThan(0, $event->getEntityClone()->getFileSize());
+            $this->assertInstanceOf('AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity', $event->getEntityClone());
+        });
+
+        $entity = (new UploadedFileEntity())
+            ->setUploadedFile($this->getTestUploadedFileOne())
+        ;
+
+        $this->storageHandler->writeUploadedFile($entity);
+
+        $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+        $this->assertEquals('sample-image-one.gif', $entity->getFileName());
+        $this->assertEquals('sample-image-one.gif', $entity->getFileStoragePath());
+
+        $this->storageHandler->deleteUploadedFile($entity);
+
+        $this->assertFileNotExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+    }
+
+    public function testDeleteEventsChangeProperties()
+    {
+        $this->eventDispatcher->addListener(StorageEvents::PRE_DELETE, function (DeleteUploadedFileEvent $event) {
+
+            $this->assertEquals('sample-image-one.gif', $event->getEntityClone()->getFileName());
+            $this->assertEquals('sample-image-one.gif', $event->getEntityClone()->getFileStoragePath());
+            $this->assertEquals('image/gif', $event->getEntityClone()->getFileMimeType());
+            $this->assertGreaterThan(0, $event->getEntityClone()->getFileSize());
+            $this->assertInstanceOf('AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity', $event->getEntityClone());
+
+            $event->getEntityClone()->setFileName('FOOB.jpeg');
+        });
+
+        $this->eventDispatcher->addListener(StorageEvents::POST_DELETE, function (DeleteUploadedFileEvent $event) {
+
+            $this->assertEquals('sample-image-one.gif', $event->getEntityClone()->getFileName());
+            $this->assertEquals('sample-image-one.gif', $event->getEntityClone()->getFileStoragePath());
+            $this->assertEquals('image/gif', $event->getEntityClone()->getFileMimeType());
+            $this->assertGreaterThan(0, $event->getEntityClone()->getFileSize());
+            $this->assertInstanceOf('AshleyDawson\DoctrineGaufretteStorableBundle\Tests\Fixtures\UploadedFileEntity', $event->getEntityClone());
+        });
+
+        $entity = (new UploadedFileEntity())
+            ->setUploadedFile($this->getTestUploadedFileOne())
+        ;
+
+        $this->storageHandler->writeUploadedFile($entity);
+
+        $this->assertFileExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+        $this->assertEquals('sample-image-one.gif', $entity->getFileName());
+        $this->assertEquals('sample-image-one.gif', $entity->getFileStoragePath());
+
+        $this->storageHandler->deleteUploadedFile($entity);
+
+        $this->assertFileNotExists(TESTS_TEMP_DIR . '/sample-image-one.gif');
+    }
+
     public function tearDown()
     {
         @unlink(TESTS_TEMP_DIR . '/sample-image-one.gif');
         @unlink(TESTS_TEMP_DIR . '/sample-image-two.jpg');
+        @unlink(TESTS_TEMP_DIR . '/fib-baz.gif');
     }
 
     /**
