@@ -76,20 +76,16 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
             }
         }
 
-        $fileContent = file_get_contents($uploadedFile->getPathname());
         $fileName = $fileStoragePath = (string) $uploadedFile->getClientOriginalName();
-        $fileSize = $uploadedFile->getSize();
-        $fileMimeType = $uploadedFile->getMimeType();
-        $fileExtension = $uploadedFile->getExtension();
 
         $event = new WriteUploadedFileEvent(
             $entity,
-            $fileContent,
-            $fileMimeType,
+            file_get_contents($uploadedFile->getPathname()),
+            $uploadedFile->getMimeType(),
             $fileName,
-            $fileSize,
+            $uploadedFile->getSize(),
             $fileStoragePath,
-            $fileExtension
+            $uploadedFile->getExtension()
         );
 
         $this->eventDispatcher->dispatch(StorageEvents::PRE_WRITE, $event);
