@@ -2,6 +2,8 @@
 
 namespace AshleyDawson\DoctrineGaufretteStorableBundle\Tests\EventListener;
 
+use AshleyDawson\DoctrineGaufretteStorableBundle\Event\StorageEvents;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Event\WriteUploadedFileEvent;
 use AshleyDawson\DoctrineGaufretteStorableBundle\EventListener\UploadedFileSubscriber;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandler;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandlerInterface;
@@ -38,13 +40,17 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
             UploadedFileTraitTest::MOCK_FILESYSTEM_MAP_ID => $filesystem,
         ]);
 
+        $storageHandler = new EntityStorageHandler(
+            $filesystemMap,
+            $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
+        );
+
+        $uploadFileSubscriber = new UploadedFileSubscriber(
+            $storageHandler
+        );
+
         $em->addEventSubscriber(
-            new UploadedFileSubscriber(
-                new EntityStorageHandler(
-                    $filesystemMap,
-                    $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
-                )
-            )
+            $uploadFileSubscriber
         );
 
         return $em;
