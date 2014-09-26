@@ -171,6 +171,7 @@ class EntityStorageHandlerTest extends \PHPUnit_Framework_TestCase
         $this->storageHandler->writeUploadedFile($entity);
 
         $this->assertEquals('foo-bar.gif', $entity->getFileName());
+        $this->assertEquals('fib-baz.gif', $entity->getFileStoragePath());
 
         $this->assertFileExists(TESTS_TEMP_DIR . '/fib-baz.gif');
     }
