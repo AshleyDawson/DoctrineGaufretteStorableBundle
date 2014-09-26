@@ -25,7 +25,6 @@ interface EntityStorageHandlerInterface
      * @param object $entity
      * @throws \AshleyDawson\DoctrineGaufretteStorableBundle\Exception\EntityNotSupportedException
      * @throws \AshleyDawson\DoctrineGaufretteStorableBundle\Exception\UploadedFileNotReadableException
-     * @throws \AshleyDawson\DoctrineGaufretteStorableBundle\Exception\UploadedFileNotFoundException
      * @param bool $canDeletePreviousFile Pass TRUE to have the handler try to delete the previous file before writing a new one
      * @return void
      */
