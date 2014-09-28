@@ -4,6 +4,20 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
-    <!-- Services Here -->
+    <parameters>
+        <parameter key="ad_doctrine_gaufrette_storable.entity_storage_handler.class">AshleyDawson\DoctrineGaufretteStorableBundle\Storage\EntityStorageHandler</parameter>
+        <parameter key="ad_doctrine_gaufrette_storable.uploaded_file_subscriber.class">AshleyDawson\DoctrineGaufretteStorableBundle\EventListener\UploadedFileSubscriber</parameter>
+    </parameters>
+
+    <services>
+        <service id="ad_doctrine_gaufrette_storable.entity_storage_handler" class="%ad_doctrine_gaufrette_storable.entity_storage_handler.class%">
+            <argument type="service" id="knp_gaufrette.filesystem_map" />
+            <argument type="service" id="event_dispatcher" />
+        </service>
+        <service id="ad_doctrine_gaufrette_storable.uploaded_file_subscriber" class="%ad_doctrine_gaufrette_storable.uploaded_file_subscriber.class%">
+            <argument type="service" id="ad_doctrine_gaufrette_storable.entity_storage_handler" />
+            <tag name="doctrine.event_subscriber" />
+        </service>
+    </services>
 
 </container>
