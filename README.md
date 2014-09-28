@@ -34,7 +34,7 @@ You can install the Doctrine Gaufrette Storable Bundle via Composer. To do that,
 ```json
 {
     "require": {
-        "ashleydawson/doctrine-gaufrette-storable-bundle": "1.0.*"
+        "ashleydawson/doctrine-gaufrette-storable-bundle": "0.8.*"
     }
 }
 ```
