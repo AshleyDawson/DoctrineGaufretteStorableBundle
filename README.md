@@ -156,10 +156,18 @@ class Post
 
 The trait will add four fields to the entity:
 
-* file_name
-* file_storage_path
-* file_mime_type
-* file_size
+* file_name : string
+    * The original name of the file as uploaded by the client
+    * E.g. foobar.gif
+* file_storage_path : string
+    * The storage path of the file. Defaults to the file name (above)
+    * E.g. /path/to/foobar.gif
+* file_mime_type : string
+    * The resolved mime type of the file uploaded by the client
+    * E.g. image/gif
+* file_size : integer
+    * The file size in bytes
+    * E.g. 2324
 
 You'll need to update your schema before using this entity.
 
