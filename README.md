@@ -251,7 +251,7 @@ $this->get('event_dispatcher')->addListener(StorageEvents::PRE_WRITE, function (
 });
 ```
 
-Of course, this is a crude example - but it does show an example of how a file (or meta information about a file) may be changed.
+Of course, this is a crude example - but it does show how a file (or meta information about a file) may be changed.
 
 It may also be a good idea to mount a subscriber instead of doing a closure-based implementation as I've done above. You should always aim to deliver a system that promotes the single responsibility principal!
 
