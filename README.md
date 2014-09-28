@@ -231,13 +231,13 @@ Events
 
 The storage handler, which is a part of the Doctrine entity lifecycle, fires several events on the margins of the file storage activity. These are:
 
-* ad_doctrine_gaufrette_storable.pre_write
+* **ad_doctrine_gaufrette_storable.pre_write**
     * Dispatched before file is written to filesystem
-* ad_doctrine_gaufrette_storable.post_write
+* **ad_doctrine_gaufrette_storable.post_write**
     * Dispatched after file is written to filesystem
-* ad_doctrine_gaufrette_storable.pre_delete
+* **ad_doctrine_gaufrette_storable.pre_delete**
     * Dispatched before file is deleted from filesystem
-* ad_doctrine_gaufrette_storable.post_delete
+* **ad_doctrine_gaufrette_storable.post_delete**
     * Dispatched after file is deleted from filesystem
 
 These events can be found within the namespace `AshleyDawson\DoctrineGaufretteStorableBundle\Event\StorageEvents`.
