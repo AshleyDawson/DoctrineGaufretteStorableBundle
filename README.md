@@ -11,6 +11,12 @@ Requirements
  >= Symfony Framework 2.3
 ```
 
+Doctrine Support
+----------------
+
+* Support for Doctrine ORM - Complete
+* Support for Doctrine ODM - Incomplete
+
 Introduction
 ------------
 
