@@ -85,7 +85,7 @@ class EntityStorageHandler implements EntityStorageHandlerInterface
             $fileName,
             $uploadedFile->getSize(),
             $fileStoragePath,
-            $uploadedFile->getExtension()
+            $uploadedFile->getClientOriginalExtension() // todo: need to make sure that this is clean as in sf forms getExtension() doesn't work properly
         );
 
         $this->eventDispatcher->dispatch(StorageEvents::PRE_WRITE, $event);
