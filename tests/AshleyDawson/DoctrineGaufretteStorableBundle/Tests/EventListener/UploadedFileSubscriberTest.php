@@ -2,6 +2,7 @@
 
 namespace AshleyDawson\DoctrineGaufretteStorableBundle\Tests\EventListener;
 
+use AshleyDawson\DoctrineGaufretteStorableBundle\Event\DeleteUploadedFileEvent;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Event\StorageEvents;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Event\WriteUploadedFileEvent;
 use AshleyDawson\DoctrineGaufretteStorableBundle\EventListener\UploadedFileSubscriber;
@@ -16,6 +17,39 @@ use Knp\Bundle\GaufretteBundle\FilesystemMap;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Gaufrette\Filesystem;
 use Gaufrette\Adapter\Local as LocalAdapter;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
+class EventDispatcherSingleton
+{
+    private static $instance;
+
+    /**
+     * @var EventDispatcher
+     */
+    private $eventDispatcher;
+
+    private function __construct()
+    {
+        $this->eventDispatcher = new EventDispatcher();
+    }
+
+    /**
+     * @return EventDispatcher
+     */
+    public function getEventDispatcher()
+    {
+        return $this->eventDispatcher;
+    }
+
+    public static function getInstance()
+    {
+        if ( ! self::$instance) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+}
 
 class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
 {
@@ -42,7 +76,7 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $storageHandler = new EntityStorageHandler(
             $filesystemMap,
-            $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface')
+            EventDispatcherSingleton::getInstance()->getEventDispatcher()
         );
 
         $uploadFileSubscriber = new UploadedFileSubscriber(
@@ -295,10 +329,83 @@ class UploadedFileSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($em->contains($entity));
     }
 
+    public function testEntityStorageHandlerWriteEvents()
+    {
+        $em = $this->getEntityManager();
+
+        EventDispatcherSingleton::getInstance()->getEventDispatcher()->addListener(StorageEvents::PRE_WRITE, function (WriteUploadedFileEvent $event) {
+            $this->assertEquals('sample-image-one.gif', $event->getFileName());
+            $this->assertEquals('sample-image-one.gif', $event->getFileStoragePath());
+            $event->setFileStoragePath('foob-schmidt.gif');
+        });
+
+        EventDispatcherSingleton::getInstance()->getEventDispatcher()->addListener(StorageEvents::POST_WRITE, function (WriteUploadedFileEvent $event) {
+            $this->assertEquals('sample-image-one.gif', $event->getFileName());
+            $this->assertEquals('foob-schmidt.gif', $event->getFileStoragePath());
+        });
+
+        $entity = (new UploadedFileEntity())
+            ->setName('Entity Name')
+            ->setUploadedFile($this->getTestUploadedFileOne())
+        ;
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        $this->assertEquals('sample-image-one.gif', $entity->getFileName());
+        $this->assertEquals('foob-schmidt.gif', $entity->getFileStoragePath());
+        $this->assertFileExists(TESTS_TEMP_DIR . '/foob-schmidt.gif');
+    }
+
+    public function testEntityStorageHandlerDeleteEvents()
+    {
+        $em = $this->getEntityManager();
+
+        EventDispatcherSingleton::getInstance()->getEventDispatcher()->addListener(StorageEvents::PRE_DELETE, function (DeleteUploadedFileEvent $event) {
+            $this->assertEquals('sample-image-one.gif', $event->getEntityClone()->getFileName());
+            $this->assertEquals('foob-schmidt.gif', $event->getEntityClone()->getFileStoragePath());
+            $this->assertEquals('image/gif', $event->getEntityClone()->getFileMimeType());
+            $this->assertGreaterThan(0, $event->getEntityClone()->getFileSize());
+        });
+
+        EventDispatcherSingleton::getInstance()->getEventDispatcher()->addListener(StorageEvents::POST_DELETE, function (DeleteUploadedFileEvent $event) {
+            $this->assertEquals('sample-image-one.gif', $event->getEntityClone()->getFileName());
+            $this->assertEquals('foob-schmidt.gif', $event->getEntityClone()->getFileStoragePath());
+            $this->assertEquals('image/gif', $event->getEntityClone()->getFileMimeType());
+            $this->assertGreaterThan(0, $event->getEntityClone()->getFileSize());
+        });
+
+        $entity = (new UploadedFileEntity())
+            ->setName('Entity Name Two')
+            ->setUploadedFile($this->getTestUploadedFileOne())
+        ;
+
+        $em->persist($entity);
+        $em->flush();
+        $em->refresh($entity);
+
+        // As the event listener is a singleton, these tests are inherited from the test @see self::testEntityStorageHandlerWriteEvents()
+        // todo: don't use singleton event listener
+        $this->assertEquals('foob-schmidt.gif', $entity->getFileStoragePath());
+        $this->assertFileExists(TESTS_TEMP_DIR . '/foob-schmidt.gif');
+
+        $em->remove($entity);
+        $em->flush();
+
+        $this->assertFalse($em->contains($entity));
+
+        $this->assertNull($entity->getFileName());
+        $this->assertNull($entity->getFileStoragePath());
+        $this->assertNull($entity->getFileMimeType());
+        $this->assertNull($entity->getFileSize());
+    }
+
     public function tearDown()
     {
         @unlink(TESTS_TEMP_DIR . '/sample-image-one.gif');
         @unlink(TESTS_TEMP_DIR . '/sample-image-two.jpg');
+        @unlink(TESTS_TEMP_DIR . '/foob-schmidt.gif');
     }
 
     /**
