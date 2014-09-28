@@ -6,8 +6,10 @@ Doctrine Gaufrette Storable Bundle
 Requirements
 ------------
 
+```
  >= PHP 5.4
  >= Symfony Framework 2.3
+```
 
 Introduction
 ------------
@@ -217,3 +219,34 @@ class PostType extends AbstractType
 ```
 
 Note: the field named "uploaded_file" maps to a parameter within the `AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFileTrait`.
+
+Events
+------
+
+The storage handler, which is a part of the Doctrine entity lifecycle, fires several events on the margins of the file storage activity. These are:
+
+* ad_doctrine_gaufrette_storable.pre_write
+    * Dispatched before file is written to filesystem
+* ad_doctrine_gaufrette_storable.post_write
+    * Dispatched after file is written to filesystem
+* ad_doctrine_gaufrette_storable.pre_delete
+    * Dispatched before file is deleted from filesystem
+* ad_doctrine_gaufrette_storable.post_delete
+    * Dispatched after file is deleted from filesystem
+
+These events can be found within the namespace `AshleyDawson\DoctrineGaufretteStorableBundle\Event\StorageEvents`.
+
+A good use case for these events is if you want to change any details of the form before it is written, for example (inside a Symfony controller):
+
+```php
+// Replace the file storage name with a random md5 hash and file extension
+$this->get('event_dispatcher')->addListener(StorageEvents::PRE_WRITE, function (WriteUploadedFileEvent $event) {
+    $event->setFileStoragePath(sprintf('%s.%s', md5(rand()), $event->getFileExtension()));
+});
+```
+
+Of course, this is a crude example - but it does show an example of how a file (or meta information about a file) may be changed.
+
+It may also be a good idea to mount a subscriber instead of doing a closure-based implementation as I've done above. You should always aim to deliver a system that promotes the single responsibility principal!
+
+
