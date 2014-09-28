@@ -52,7 +52,7 @@ $bundles = array(
 Configuration
 -------------
 
-Next, you'll need to configure at least one filesystem to store your files in. I'll lay out an example below, however, a better example of this can be found on the [Gaufrette Bundle's documentation](https://github.com/KnpLabs/KnpGaufretteBundle#configuring-the-filesystems).
+Next, you'll need to configure at least one filesystem to store your files in. I'll lay out an example below, however, a better example of this can be found in the [Gaufrette Bundle documentation](https://github.com/KnpLabs/KnpGaufretteBundle#configuring-the-filesystems).
 
 ```yaml
 # app/config/config.yml
