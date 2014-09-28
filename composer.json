@@ -30,7 +30,6 @@
             "AshleyDawson\\DoctrineGaufretteStorableBundle": "src"
         }
     },
-    "target-dir": "AshleyDawson/DoctrineGaufretteStorableBundle",
     "config": {
         "bin-dir": "bin"
     }
