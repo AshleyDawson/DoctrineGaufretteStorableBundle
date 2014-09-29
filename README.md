@@ -241,6 +241,7 @@ namespace Acme\DemoBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFileTrait;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Post
@@ -291,7 +292,6 @@ Then you can add the new name to the form type, like so:
     }
 
     // ...
-}
 ```
 
 Events
