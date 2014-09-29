@@ -232,7 +232,67 @@ class PostType extends AbstractType
 }
 ```
 
-Note: the field named "uploaded_file" maps to a parameter within the `AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFileTrait`.
+Note: the field named "uploaded_file" maps to a parameter within the `AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFileTrait`. If you'd like to change this, simply add an accessor to your entity to act as a proxy:
+
+```php
+<?php
+
+namespace Acme\DemoBundle\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use AshleyDawson\DoctrineGaufretteStorableBundle\Model\UploadedFileTrait;
+
+/**
+ * Post
+ *
+ * @ORM\Table()
+ * @ORM\Entity
+ */
+class Post
+{
+    /**
+     * Use the uploaded file trait
+     */
+    use UploadedFileTrait;   
+   
+    // ...
+
+    /**
+     * Set my file
+     *
+     * @param \Symfony\Component\HttpFoundation\File\UploadedFile $file
+     * @return $this
+     */
+    public function setMyFile(UploadedFile $file = null)
+    {
+        $this->setUploadedFile($file);
+        
+        return $this;
+    }
+}
+```
+
+Then you can add the new name to the form type, like so:
+
+```php
+    // ...
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        $builder
+            ->add('title', 'text')
+            ->add('my_file', 'file', [
+                'required' => false,
+            ])
+        ;
+    }
+
+    // ...
+}
+```
 
 Events
 ------
@@ -255,11 +315,19 @@ A good use case for these events is if you want to change any details of the for
 ```php
 // Replace the file storage name with a random md5 hash and file extension
 $this->get('event_dispatcher')->addListener(StorageEvents::PRE_WRITE, function (WriteUploadedFileEvent $event) {
-    $event->setFileStoragePath(sprintf('%s.%s', md5(rand()), $event->getFileExtension()));
+    // Build a directory structure like "af/9e"
+    $fileStoragePath = implode('/', str_split(substr(md5(mt_rand()), 0, 4), 2));
+    $event->setFileStoragePath(sprintf('/%s/%s.%s', $fileStoragePath, md5(mt_rand()), $event->getFileExtension()));
 });
 ```
 
-Of course, this is a crude example - but it does show how a file (or meta information about a file) may be changed.
+Of course, this is a crude example - but it does show how a file (or meta information about a file) may be changed. In the example above, I'm building a hash directory structure for the storage path. Something like this:
+
+```
+/af/9e/2997f54d953111d222c00a0b6ed94a50.gif
+```
+
+**Note:** please don't use the example above as a production solution as there is a chance of filename collision.
 
 It may also be a good idea to mount a subscriber instead of doing a closure-based implementation as I've done above. You should always aim to deliver a system that promotes the single responsibility principal!
 
