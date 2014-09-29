@@ -313,8 +313,9 @@ These events can be found within the namespace `AshleyDawson\DoctrineGaufretteSt
 A good use case for these events is if you want to change any details of the form before it is written, for example (inside a Symfony controller):
 
 ```php
-// Replace the file storage name with a random md5 hash and file extension
+// Replace the file storage path with a random md5 hash directory structure, name and file extension
 $this->get('event_dispatcher')->addListener(StorageEvents::PRE_WRITE, function (WriteUploadedFileEvent $event) {
+
     // Build a directory structure like "af/9e"
     $fileStoragePath = implode('/', str_split(substr(md5(mt_rand()), 0, 4), 2));
     $event->setFileStoragePath(sprintf('/%s/%s.%s', $fileStoragePath, md5(mt_rand()), $event->getFileExtension()));
