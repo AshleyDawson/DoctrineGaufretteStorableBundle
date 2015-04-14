@@ -3,6 +3,8 @@ Doctrine Gaufrette Storable Bundle
 
 [![Build Status](https://travis-ci.org/AshleyDawson/DoctrineGaufretteStorableBundle.svg?branch=develop)](https://travis-ci.org/AshleyDawson/DoctrineGaufretteStorableBundle)
 
+[![knpbundles.com](http://knpbundles.com/AshleyDawson/SimplePaginationBundle/badge-short)](http://knpbundles.com/AshleyDawson/SimplePaginationBundle)
+
 Requirements
 ------------
 
