@@ -2,6 +2,7 @@
     "name": "ashleydawson/doctrine-gaufrette-storable-bundle",
     "type": "symfony-bundle",
     "description": "Symfony2 bundle to add a storable behaviour to doctrine entities to facilitate abstracted file storage",
+    "license": "MIT",
     "keywords": [
         "gaufrette",
         "storage",
